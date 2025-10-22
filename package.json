@@ -14,7 +14,8 @@
   "author": "Aniket Shelke",
   "license": "ISC",
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "mongoose": "^8.19.2"
   },
   "devDependencies": {
     "prettier": "^3.6.2"
