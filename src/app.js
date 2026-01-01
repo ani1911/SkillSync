@@ -6,16 +6,22 @@ const User = require("./models/user");
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
-  console.log(req.body);
-
-  // create the instance of the user model
-  const user = new User(req.body);
-
   try {
+    if (Object.keys(req.body).length === 0) {
+      return res.status(400).send("Request body cannot be empty");
+    }
+
+    const user = new User(req.body);
     await user.save();
-    res.send("User Added successfully");
+
+    res.status(201).json({
+      message: "User registered successfully",
+    });
   } catch (err) {
-    res.status(400).send("user data not saving:", err);
+    if (err.code === 11000) {
+      return res.status(400).send("Email already exists");
+    }
+    res.status(400).send(err.message);
   }
 });
 
@@ -63,16 +69,32 @@ app.delete("/user/:userId", async (req, res) => {
   }
 });
 
-// update user by email id
-app.patch("/user", async (req, res) => {
-  const emailId = req.body.emailId;
+// update user by id
+app.patch("/user/:userId", async (req, res) => {
+  const userId = req.params.userId;
   const data = req.body;
 
   try {
-    const user = await User.findOneAndUpdate(emailId, data);
+    if (Object.keys(data).length == 0) {
+      return res.status(400).send("NO data provided for update");
+    }
+    const ALLOWED_UPDATES = ["photoUrl", "about", "gender", "age", "skills"];
+
+    const isUpdateAllowed = Object.keys(data).every((k) =>
+      ALLOWED_UPDATES.includes(k)
+    );
+
+    if (!isUpdateAllowed) {
+      throw new Error("update not allowed");
+    }
+
+    const user = await User.findByIdAndUpdate(userId, data, {
+      new: true,
+      runValidators: true,
+    });
     res.send(user);
   } catch (err) {
-    res.status(400).send("something went wrong");
+    res.status(400).send("UPDATE FALIED: " + err.message);
   }
 });
 
