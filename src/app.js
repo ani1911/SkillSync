@@ -2,16 +2,28 @@ const express = require("express");
 const app = express();
 const connectDB = require("./config/database");
 const User = require("./models/user");
+const { validateSignUpData } = require("./utils/validation");
+const bcrypt = require("bcrypt");
 
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
   try {
-    if (Object.keys(req.body).length === 0) {
-      return res.status(400).send("Request body cannot be empty");
-    }
+    // validation of data
+    validateSignUpData(req);
 
-    const user = new User(req.body);
+    const { firstName, lastName, emailId, password } = req.body;
+
+    //Encrypt the password
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password: passwordHash,
+    });
     await user.save();
 
     res.status(201).json({
