@@ -37,6 +37,27 @@ app.post("/signup", async (req, res) => {
   }
 });
 
+app.post("/login", async (req, res) => {
+  try {
+    const { emailId, password } = req.body;
+
+    const user = await User.findOne({ emailId: emailId });
+    console.log(user.password);
+    if (!user) {
+      throw new Error("EmailId is not registered");
+    }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (isPasswordValid) {
+      res.send("Login Successfully");
+    } else {
+      throw new Error("password is not correct");
+    }
+  } catch (err) {
+    res.status(400).send("ERROR: " + err.message);
+  }
+});
+
 // get user my emailID
 app.get("/user", async (req, res) => {
   const useremailID = req.body.emailId;
@@ -54,7 +75,6 @@ app.get("/user", async (req, res) => {
 });
 
 // Feed api /get feed - get the all users from the database
-
 app.get("/feed", async (req, res) => {
   try {
     const users = await User.find({});
@@ -69,7 +89,6 @@ app.get("/feed", async (req, res) => {
 });
 
 // delete user from database
-
 app.delete("/user/:userId", async (req, res) => {
   const userId = req.params.userId;
 
