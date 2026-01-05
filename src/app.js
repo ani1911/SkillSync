@@ -51,7 +51,7 @@ app.post("/login", async (req, res) => {
     const isPasswordValid = await user.validatePassword(password);
 
     if (isPasswordValid) {
-      const token = await user.ge tJWT();
+      const token = await user.getJWT();
 
       res.cookie("token", token);
 
