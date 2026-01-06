@@ -1,77 +1,16 @@
 const express = require("express");
 const app = express();
 const connectDB = require("./config/database");
-const User = require("./models/user");
-const { validateSignUpData } = require("./utils/validation");
 const cookieParser = require("cookie-parser");
-const { userAuth } = require("./middlewares/auth");
 
 app.use(express.json());
 app.use(cookieParser());
 
-app.post("/signup", async (req, res) => {
-  try {
-    // validation of data
-    validateSignUpData(req);
+const authRouter = require("./routes/auth");
+const profileRouter = require("./routes/profile");
 
-    const { firstName, lastName, emailId, password } = req.body;
-
-    //Encrypt the password
-
-    const passwordHash = await bcrypt.hash(password, 10);
-
-    const user = new User({
-      firstName,
-      lastName,
-      emailId,
-      password: passwordHash,
-    });
-    await user.save();
-
-    res.status(201).json({
-      message: "User registered successfully",
-    });
-  } catch (err) {
-    if (err.code === 11000) {
-      return res.status(400).send("Email already exists");
-    }
-    res.status(400).send(err.message);
-  }
-});
-
-app.post("/login", async (req, res) => {
-  try {
-    const { emailId, password } = req.body;
-
-    const user = await User.findOne({ emailId: emailId });
-
-    if (!user) {
-      throw new Error("EmailId is not registered");
-    }
-    const isPasswordValid = await user.validatePassword(password);
-
-    if (isPasswordValid) {
-      const token = await user.getJWT();
-
-      res.cookie("token", token);
-
-      res.send("Login Successfully");
-    } else {
-      throw new Error("password is not correct");
-    }
-  } catch (err) {
-    res.status(400).send("ERROR: " + err.message);
-  }
-});
-
-app.get("/profile", userAuth, async (req, res) => {
-  try {
-    const user = req.user;
-    res.send(user);
-  } catch (err) {
-    res.status(400).send("ERROR : " + err.message);
-  }
-});
+app.use("/", authRouter);
+app.use("/", profileRouter);
 
 // get user my emailID
 app.get("/user", async (req, res) => {
