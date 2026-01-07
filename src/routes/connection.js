@@ -27,11 +27,11 @@ router.post("/connection/send/:userId", userAuth, async (req, res) => {
       status: "like",
     });
 
-    if (!isMatched || !reverseLike) {
-      return res.status(403).send({
-        message: "Connection allowed only after match",
-      });
-    }
+    // if (!isMatched || !reverseLike) {
+    //   return res.status(403).send({
+    //     message: "Connection allowed only after match",
+    //   });
+    // }
 
     //  CHECK REVERSE PENDING REQUEST (EDGE CASE)
     const reverseRequest = await Connection.findOne({
@@ -116,50 +116,6 @@ router.patch("/connection/:action/:requestId", userAuth, async (req, res) => {
   } catch (err) {
     res.status(500).send({
       message: "Failed to update connection",
-      error: err.message,
-    });
-  }
-});
-
-router.get("/connection/list", userAuth, async (req, res) => {
-  try {
-    const userId = req.user._id;
-
-    const connections = await Connection.find({
-      status: "accepted",
-      $or: [{ fromUserId: userId }, { toUserId: userId }],
-    }).populate("fromUserId toUserId", "-password");
-
-    res.send({
-      success: true,
-      count: connections.length,
-      data: connections,
-    });
-  } catch (err) {
-    res.status(500).send({
-      message: "Failed to fetch connections",
-      error: err.message,
-    });
-  }
-});
-
-router.get("/connection/requests", userAuth, async (req, res) => {
-  try {
-    const userId = req.user._id;
-
-    const requests = await Connection.find({
-      toUserId: userId,
-      status: "pending",
-    }).populate("fromUserId", "-password");
-
-    res.send({
-      success: true,
-      count: requests.length,
-      data: requests,
-    });
-  } catch (err) {
-    res.status(500).send({
-      message: "Failed to fetch requests",
       error: err.message,
     });
   }

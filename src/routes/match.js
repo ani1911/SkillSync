@@ -10,20 +10,26 @@ router.post("/match/:action/:userId", userAuth, async (req, res) => {
     const toUserId = req.params.userId;
     const action = req.params.action;
 
+    // Validate action
     if (!["like", "dislike"].includes(action)) {
-      throw new Error("Invaild action");
-    }
-    // prevent self-like
-    if (fromUserId.equals(toUserId)) {
-      res.send({ message: "You cannot perform action on yourself" });
+      return res.status(400).send({ message: "Invalid action" });
     }
 
-    //create like
-    await Match.create({
-      fromUserId,
-      toUserId,
-      status: action,
-    });
+    // Prevent self-like
+    if (fromUserId.equals(toUserId)) {
+      return res.status(400).send({
+        message: "You cannot perform action on yourself",
+      });
+    }
+
+    // Upsert the interaction
+    const interaction = await Match.findOneAndUpdate(
+      { fromUserId, toUserId },
+      { status: action },
+      { upsert: true, new: true }
+    );
+
+    // Only check match if action is like
     if (action === "like") {
       const reverseLike = await Match.findOne({
         fromUserId: toUserId,
@@ -39,48 +45,16 @@ router.post("/match/:action/:userId", userAuth, async (req, res) => {
         });
       }
     }
+
     res.send({
       success: true,
       isMatch: false,
       message: `User ${action} successfully`,
     });
   } catch (err) {
-    if (err.code == 11000) {
-      return res
-        .status(400)
-        .send({ message: "you already interacted with this user" });
-    }
-    res.status(400).send("ERROR : " + err.message);
-  }
-});
-
-router.get("/match/matches", userAuth, async (req, res) => {
-  try {
-    const userId = req.user._id;
-
-    const likedByMe = await Match.find({
-      fromUserId: userId,
-      status: "like",
-    }).select("toUserId");
-
-    const likedUserIds = likedByMe.map((doc) => doc.toUserId);
-
-    const likedMe = await Match.find({
-      fromUserId: { $in: likedUserIds },
-      toUserId: userId,
-      status: "like",
-    }).populate("fromUserId", "-password");
-
-    const matches = likedMe.map((doc) => doc.fromUserId);
-
-    res.send({
-      success: true,
-      count: matches.length,
-      data: matches,
-    });
-  } catch (err) {
+    console.error(err);
     res.status(500).send({
-      message: "Failed to fetch matches",
+      message: "Failed to perform action",
       error: err.message,
     });
   }
