@@ -8,19 +8,10 @@ router.post("/signup", async (req, res) => {
   try {
     // validation of data
     validateSignUpData(req);
-
     const { firstName, lastName, emailId, password } = req.body;
-
     //Encrypt the password
-
     const passwordHash = await bcrypt.hash(password, 10);
-
-    const user = new User({
-      firstName,
-      lastName,
-      emailId,
-      password: passwordHash,
-    });
+    const user = new User({firstName,lastName,emailId,password:passwordHash,});
     await user.save();
 
     res.status(201).json({
@@ -42,7 +33,6 @@ router.post("/signup", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { emailId, password } = req.body;
-
     const user = await User.findOne({ emailId: emailId });
 
     if (!user) {
@@ -52,9 +42,7 @@ router.post("/login", async (req, res) => {
 
     if (isPasswordValid) {
       const token = await user.getJWT();
-
       res.cookie("token", token);
-
       res.send("Login Successfully");
     } else {
       throw new Error("password is not correct");

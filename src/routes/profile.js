@@ -14,15 +14,15 @@ router.get("/profile/view", userAuth, async (req, res) => {
   }
 });
 
-router.patch("/profile/edit", userAuth, async (req, res) => {
+router.patch("/profile/edit", userAuth, async (req,res)=>{
   try {
     if (!validateEditProfileData(req)) {
       return res.status(400).json({ message: "Invalid update fields" });
     }
 
-    const user = req.user;
+    const user=req.user;
 
-    Object.keys(req.body).forEach((key) => (user[key] = req.body[key]));
+    Object.keys(req.body).forEach((key)=>(user[key] = req.body[key]));
 
     await user.save();
     res.send({
@@ -34,20 +34,19 @@ router.patch("/profile/edit", userAuth, async (req, res) => {
   }
 });
 
-router.patch("/profile/updatepassword", userAuth, async (req, res) => {
+router.patch("/profile/updatepassword", userAuth, async (req,res) => {
   try {
-    const { currentPassword, newPassword } = req.body;
-    const user = req.user;
-
-    const isvalid = await user.validatePassword(currentPassword);
+    const {currentPassword,newPassword}=req.body;
+    const user=req.user;
+    const isvalid=await user.validatePassword(currentPassword);
 
     if (!isvalid) {
       throw new Error("current Password is invalid");
     }
 
-    const passwordHash = await bcrypt.hash(newPassword, 10);
+    const passwordHash=await bcrypt.hash(newPassword, 10);
 
-    user.password = passwordHash;
+    user.password=passwordHash;
     await user.save();
 
     res.send("password updated successfully");
