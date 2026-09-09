@@ -28,7 +28,12 @@ router.post("/signup", async (req, res) => {
     });
   } catch (err) {
     if (err.code === 11000) {
-      return res.status(400).send("Email already exists");
+      const duplicatedField = Object.keys(err.keyPattern || { emailId: 1 })[0];
+      const message =
+        duplicatedField === "emailId"
+          ? "Email already exists"
+          : `${duplicatedField} already taken`;
+      return res.status(400).send(message);
     }
     res.status(400).send(err.message);
   }
