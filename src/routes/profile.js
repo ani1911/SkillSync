@@ -6,8 +6,9 @@ const bcrypt = require("bcrypt");
 
 router.get("/profile/view", userAuth, async (req, res) => {
   try {
-    const user = req.user;
-    res.send(user);
+    // Never leak the password hash in API responses.
+    const { password, ...safeUser } = req.user.toObject();
+    res.send(safeUser);
   } catch (err) {
     res.status(400).send("ERROR : " + err.message);
   }
