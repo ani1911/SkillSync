@@ -18,9 +18,6 @@ const userSchema = new mongoose.Schema(
     },
     username: {
       type: String,
-      // sparse allows many users to have no username at all. Without it,
-      // MongoDB treats every missing username as null, so the unique index
-      // rejects every signup after the first user (E11000 dup key on null).
       unique: true,
       sparse: true,
       lowercase: true,
@@ -54,20 +51,21 @@ const userSchema = new mongoose.Schema(
     },
     photourl: {
       type: String,
-      default: "https://default-photo.png",
+      default: "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp",
     },
     headline: {
       type: String,
       maxlength: 100,
+      trim: true,
     },
     skills: {
       type: [String],
       validate: {
-        validator: (v) => v.length < 10,
-        message: "maximum 10 skill allowed",
+        validator: (v) => v.length <= 10,
+        message: "Maximum 10 skills allowed",
       },
     },
-    interesets: {
+    interests: {
       type: [String],
     },
     experienceLevel: {
@@ -78,55 +76,62 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["collaborator", "mentor", "project", "internship"],
     },
-
     availability: {
       type: String,
       enum: ["part-time", "full-time", "weekends"],
     },
-
     githubUrl: {
       type: String,
-      validate(value) {
-        if (!validator.isURL(value)) {
-          throw new Error("invalid url");
-        }
+      validate: {
+        validator: function (value) {
+          if (!value) return true;
+          return validator.isURL(value);
+        },
+        message: "Invalid GitHub URL",
       },
     },
-
     linkedinUrl: {
       type: String,
+      validate: {
+        validator: function (value) {
+          if (!value) return true;
+          return validator.isURL(value);
+        },
+        message: "Invalid LinkedIn URL",
+      },
     },
-
     portfolioUrl: {
       type: String,
+      validate: {
+        validator: function (value) {
+          if (!value) return true;
+          return validator.isURL(value);
+        },
+        message: "Invalid Portfolio URL",
+      },
     },
-
     likes: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
       },
     ],
-
     dislikes: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
       },
     ],
-
     matches: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
       },
     ],
-
     isProfileComplete: {
       type: Boolean,
       default: false,
     },
-
     isActive: {
       type: Boolean,
       default: true,
@@ -135,19 +140,18 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-userSchema.methods.getJWT = async function () {
+userSchema.methods.getJWT = function () {
   const user = this;
-  const token = await jwt.sign({ _id: user._id }, "SKILL@SYNC$19");
+  const token = jwt.sign(
+    { _id: user._id },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+  );
   return token;
 };
 
 userSchema.methods.validatePassword = async function (passwordInputByUser) {
-  const user = this;
-  const isPasswordValid = await bcrypt.compare(
-    passwordInputByUser,
-    this.password
-  );
-
+  const isPasswordValid = await bcrypt.compare(passwordInputByUser, this.password);
   return isPasswordValid;
 };
 
