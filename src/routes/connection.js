@@ -28,11 +28,11 @@ router.post("/connection/send/:userId", userAuth, async (req, res) => {
       status: "like",
     });
 
-    // if (!isMatched || !reverseLike) {
-    //   return res.status(403).send({
-    //     message: "Connection allowed only after match",
-    //   });
-    // }
+    if (!isMatched || !reverseLike) {
+      return res.status(403).send({
+        message: "Connection allowed only after match",
+      });
+    }
 
     //  CHECK REVERSE PENDING REQUEST (EDGE CASE)
     const reverseRequest = await Connection.findOne({
