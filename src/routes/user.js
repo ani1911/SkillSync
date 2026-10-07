@@ -125,7 +125,7 @@ router.get("/user/feed", userAuth, async (req, res) => {
     };
 
     const users = await User.find(filter)
-      .select("firstName lastName username photourl headline about skills interests experienceLevel lookingFor availability githubUrl linkedinUrl projects")
+      .select("firstName lastName username age gender photourl headline about skills interests experienceLevel lookingFor availability githubUrl linkedinUrl portfolioUrl projects")
       .skip(skip)
       .limit(limit);
 
