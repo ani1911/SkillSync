@@ -27,6 +27,7 @@ const validateEditProfileData = (req) => {
     "githubUrl",
     "linkedinUrl",
     "portfolioUrl",
+    "projects",
   ];
 
   const isValidUpdate = Object.keys(req.body).every((key) =>

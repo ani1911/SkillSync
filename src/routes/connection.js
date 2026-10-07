@@ -7,6 +7,7 @@ router.post("/connection/send/:userId", userAuth, async (req, res) => {
   try {
     const fromUserId = req.user._id;
     const toUserId = req.params.userId;
+    const { message } = req.body;
 
     if (fromUserId.equals(toUserId)) {
       return res.status(400).send({
@@ -69,6 +70,7 @@ router.post("/connection/send/:userId", userAuth, async (req, res) => {
       fromUserId,
       toUserId,
       status: "pending",
+      message: message || undefined,
     });
 
     res.send({

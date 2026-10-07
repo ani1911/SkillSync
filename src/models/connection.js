@@ -12,6 +12,11 @@ const connectionSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    message: {
+      type: String,
+      maxlength: 300,
+      trim: true,
+    },
     status: {
       type: String,
       enum: ["pending", "accepted", "rejected"],

@@ -110,6 +110,22 @@ const userSchema = new mongoose.Schema(
         message: "Invalid Portfolio URL",
       },
     },
+    projects: [
+      {
+        title: { type: String, required: true, maxlength: 100, trim: true },
+        description: { type: String, maxlength: 500, trim: true },
+        link: {
+          type: String,
+          validate: {
+            validator: function (value) {
+              if (!value) return true;
+              return validator.isURL(value);
+            },
+            message: "Invalid Project URL",
+          },
+        },
+      }
+    ],
     likes: [
       {
         type: mongoose.Schema.Types.ObjectId,
