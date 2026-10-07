@@ -1,36 +1,11 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+const Connection = require("./models/connection");
+const Match = require("./models/match");
+const User = require("./models/user");
 
 const connectDB = async () => mongoose.connect(process.env.MONGODB_URI);
-
-const userSchema = new mongoose.Schema(
-  {
-    firstName: { type: String, required: true, trim: true },
-    lastName: { type: String, trim: true },
-    username: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
-    emailId: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    password: { type: String, required: true },
-    age: { type: Number },
-    gender: { type: String },
-    about: { type: String },
-    photourl: { type: String },
-    headline: { type: String },
-    skills: [String],
-    interests: [String],
-    experienceLevel: { type: String },
-    lookingFor: { type: String },
-    availability: { type: String },
-    githubUrl: { type: String },
-    linkedinUrl: { type: String },
-    portfolioUrl: { type: String },
-    isProfileComplete: { type: Boolean, default: true },
-    isActive: { type: Boolean, default: true },
-  },
-  { timestamps: true }
-);
-
-const User = mongoose.model("User", userSchema);
 
 const profiles = [
   {
@@ -51,6 +26,13 @@ const profiles = [
     githubUrl: "https://github.com/arjunmehta",
     linkedinUrl: "https://linkedin.com/in/arjunmehta",
     portfolioUrl: "https://arjunmehta.dev",
+    projects: [
+      {
+        title: "TaskFlow SaaS",
+        description: "A beautiful task management tool for remote teams featuring real-time collaboration via WebSockets.",
+        link: "https://github.com/arjunmehta/taskflow"
+      }
+    ]
   },
   {
     firstName: "Priya",
@@ -69,6 +51,13 @@ const profiles = [
     availability: "part-time",
     githubUrl: "https://github.com/priyasharma",
     linkedinUrl: "https://linkedin.com/in/priyasharma",
+    projects: [
+      {
+        title: "VisionScan",
+        description: "Real-time object detection model deployed via FastAPI. Can identify 50+ household objects with 95% accuracy.",
+        link: "https://github.com/priyasharma/visionscan"
+      }
+    ]
   },
   {
     firstName: "Rohan",
@@ -88,6 +77,18 @@ const profiles = [
     githubUrl: "https://github.com/rohanv",
     linkedinUrl: "https://linkedin.com/in/rohanverma",
     portfolioUrl: "https://rohanverma.io",
+    projects: [
+      {
+        title: "Go-Cache-Layer",
+        description: "An open-source high-performance distributed caching layer written in Go. 5k+ stars on GitHub.",
+        link: "https://github.com/rohanv/go-cache-layer"
+      },
+      {
+        title: "Distributed Order System",
+        description: "Event-driven microservices architecture using Apache Kafka and PostgreSQL.",
+        link: "https://github.com/rohanv/distributed-orders"
+      }
+    ]
   },
   {
     firstName: "Aisha",
@@ -106,6 +107,13 @@ const profiles = [
     availability: "full-time",
     githubUrl: "https://github.com/aishakhan",
     portfolioUrl: "https://aishakhan.design",
+    projects: [
+      {
+        title: "Webgl Portfolio",
+        description: "My personal portfolio featuring an interactive 3D particle system built with Three.js and React Fiber.",
+        link: "https://aishakhan.design"
+      }
+    ]
   },
   {
     firstName: "Dev",
@@ -124,6 +132,13 @@ const profiles = [
     availability: "part-time",
     githubUrl: "https://github.com/devpatel",
     linkedinUrl: "https://linkedin.com/in/devpatel",
+    projects: [
+      {
+        title: "DeFi Lending Protocol",
+        description: "A decentralized lending protocol smart contract with automated liquidations.",
+        link: "https://github.com/devpatel/defi-lending"
+      }
+    ]
   },
   {
     firstName: "Meera",
@@ -142,6 +157,13 @@ const profiles = [
     availability: "full-time",
     linkedinUrl: "https://linkedin.com/in/meeranair",
     portfolioUrl: "https://meeranair.co",
+    projects: [
+      {
+        title: "Accessibility Audit Tool",
+        description: "Designed a comprehensive dashboard for auditing web accessibility based on WCAG guidelines.",
+        link: "https://meeranair.co/a11y-audit"
+      }
+    ]
   },
   {
     firstName: "Karan",
@@ -161,6 +183,13 @@ const profiles = [
     githubUrl: "https://github.com/karansingh",
     linkedinUrl: "https://linkedin.com/in/karansingh",
     portfolioUrl: "https://karansingh.tech",
+    projects: [
+      {
+        title: "K8s Auto-Scaler",
+        description: "A custom Kubernetes controller that scales node pools based on custom Prometheus metrics.",
+        link: "https://github.com/karansingh/k8s-scaler"
+      }
+    ]
   },
 ];
 
@@ -168,6 +197,17 @@ const seed = async () => {
   try {
     await connectDB();
     console.log("✅ Connected to MongoDB");
+
+    // Get all seed users before deleting to delete their matches
+    const seedUsers = await User.find({ emailId: { $regex: '@seed\\.dev$' } });
+    const seedUserIds = seedUsers.map(u => u._id);
+
+    // Clear previous matches and connections involving seed users
+    if (seedUserIds.length > 0) {
+      await Match.deleteMany({ $or: [{ fromUserId: { $in: seedUserIds } }, { toUserId: { $in: seedUserIds } }] });
+      await Connection.deleteMany({ $or: [{ fromUserId: { $in: seedUserIds } }, { toUserId: { $in: seedUserIds } }] });
+      console.log(`🧹 Cleared matches and connections for old seed users.`);
+    }
 
     // Clear previous seeded data
     const result = await User.deleteMany({ emailId: { $regex: '@seed\\.dev$' } });
