@@ -92,7 +92,33 @@ router.get("/user/connectionlist", userAuth, async (req, res) => {
   }
 });
 
-//get the feed
+//get public feed for unauthenticated users
+router.get("/feed", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const filter = { isActive: true };
+
+    const users = await User.find(filter)
+      .select("firstName lastName username age gender photourl headline about skills interests experienceLevel lookingFor availability githubUrl linkedinUrl portfolioUrl projects")
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      page,
+      count: users.length,
+      feed: users,
+    });
+  } catch (err) {
+    res.status(400).send({
+      message: err.message,
+    });
+  }
+});
+
+//get the feed for logged in users
 
 router.get("/user/feed", userAuth, async (req, res) => {
   try {
