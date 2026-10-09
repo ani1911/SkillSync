@@ -145,15 +145,43 @@ router.get("/user/feed", userAuth, async (req, res) => {
 
     const excludeUsers = [userId, ...interactedUserIds, ...connectionUserIds];
 
+    // 1. Find who has already liked the logged in user
+    const admirers = await Match.find({
+      toUserId: userId,
+      status: "like"
+    }).select("fromUserId");
+    
+    const admirerIds = admirers.map(doc => doc.fromUserId);
+
     const filter = {
       _id: { $nin: excludeUsers },
       isActive: true,
     };
 
-    const users = await User.find(filter)
-      .select("firstName lastName username age gender photourl headline about skills interests experienceLevel lookingFor availability githubUrl linkedinUrl portfolioUrl projects")
-      .skip(skip)
-      .limit(limit);
+    // 2. Fetch feed prioritizing those admirers using aggregation
+    const users = await User.aggregate([
+      { $match: filter },
+      {
+        $addFields: {
+          // If the user's ID is in the admirerIds array, they get a score of 1, else 0
+          priorityScore: {
+            $cond: { if: { $in: ["$_id", admirerIds] }, then: 1, else: 0 }
+          }
+        }
+      },
+      // Sort by priorityScore (admirers first), then by creation date
+      { $sort: { priorityScore: -1, _id: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+      {
+        $project: {
+          firstName: 1, lastName: 1, username: 1, age: 1, gender: 1, photourl: 1, 
+          headline: 1, about: 1, skills: 1, interests: 1, experienceLevel: 1, 
+          lookingFor: 1, availability: 1, githubUrl: 1, linkedinUrl: 1, 
+          portfolioUrl: 1, projects: 1
+        }
+      }
+    ]);
 
     res.status(200).json({
       page,
