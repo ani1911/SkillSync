@@ -202,12 +202,10 @@ const seed = async () => {
     const seedUsers = await User.find({ emailId: { $regex: '@seed\\.dev$' } });
     const seedUserIds = seedUsers.map(u => u._id);
 
-    // Clear previous matches and connections involving seed users
-    if (seedUserIds.length > 0) {
-      await Match.deleteMany({ $or: [{ fromUserId: { $in: seedUserIds } }, { toUserId: { $in: seedUserIds } }] });
-      await Connection.deleteMany({ $or: [{ fromUserId: { $in: seedUserIds } }, { toUserId: { $in: seedUserIds } }] });
-      console.log(`🧹 Cleared matches and connections for old seed users.`);
-    }
+    // Clear ALL matches and connections to ensure a clean testing environment
+    await Match.deleteMany({});
+    await Connection.deleteMany({});
+    console.log(`🧹 Cleared all matches and connections for a fresh start.`);
 
     // Clear previous seeded data
     const result = await User.deleteMany({ emailId: { $regex: '@seed\\.dev$' } });
