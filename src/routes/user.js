@@ -30,6 +30,16 @@ router.get("/user/matches", userAuth, async (req, res) => {
   try {
     const userId = req.user._id;
 
+    // 1. Get all existing connection requests (pending, accepted, rejected)
+    const existingConnections = await Connection.find({
+      $or: [{ fromUserId: userId }, { toUserId: userId }],
+    });
+
+    const excludeUserIds = existingConnections.map((conn) =>
+      conn.fromUserId.equals(userId) ? conn.toUserId : conn.fromUserId
+    );
+
+    // 2. Get mutual matches
     const likedByMe = await Match.find({
       fromUserId: userId,
       status: "like",
@@ -37,8 +47,9 @@ router.get("/user/matches", userAuth, async (req, res) => {
 
     const likedUserIds = likedByMe.map((doc) => doc.toUserId);
 
+    // Filter out users who are already in our connections list
     const likedMe = await Match.find({
-      fromUserId: { $in: likedUserIds },
+      fromUserId: { $in: likedUserIds, $nin: excludeUserIds },
       toUserId: userId,
       status: "like",
     }).populate("fromUserId", "-password -emailId");
