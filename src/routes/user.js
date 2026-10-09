@@ -25,6 +25,22 @@ router.get("/user/requests/pending", userAuth, async (req, res) => {
   }
 });
 
+//get single user profile by id
+router.get("/user/profile/:userId", userAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId).select("-password -emailId");
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+    res.send({
+      success: true,
+      data: user,
+    });
+  } catch (err) {
+    res.status(400).send({ message: "Failed to fetch user", error: err.message });
+  }
+});
+
 //get the all matches of users
 router.get("/user/matches", userAuth, async (req, res) => {
   try {
