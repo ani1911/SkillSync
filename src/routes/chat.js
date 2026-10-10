@@ -10,7 +10,7 @@ router.get("/chat/:matchId", userAuth, async (req, res) => {
 
     // Fetch all messages for this matchId and sort by creation time
     const messages = await Message.find({ matchId })
-      .populate("senderId", "firstName lastName photourl")
+      .populate("senderId", "firstName lastName")
       .sort({ createdAt: 1 });
 
     res.status(200).json({

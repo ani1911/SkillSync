@@ -28,7 +28,7 @@ const initializeSocket = (server) => {
         });
 
         // Populate the sender info before broadcasting so the frontend has avatar/name
-        const populatedMessage = await message.populate("senderId", "firstName lastName photourl");
+        const populatedMessage = await message.populate("senderId", "firstName lastName");
 
         // 2. Broadcast the saved message to everyone in the room
         io.to(matchId).emit("receiveMessage", populatedMessage);
