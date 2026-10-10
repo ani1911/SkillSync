@@ -32,9 +32,20 @@ router.get("/user/profile/:userId", userAuth, async (req, res) => {
     if (!user) {
       return res.status(404).send({ message: "User not found" });
     }
+
+    // Check if these two users have an accepted premium connection
+    const connection = await Connection.findOne({
+      status: "accepted",
+      $or: [
+        { fromUserId: req.user._id, toUserId: req.params.userId },
+        { fromUserId: req.params.userId, toUserId: req.user._id },
+      ],
+    });
+
     res.send({
       success: true,
       data: user,
+      isPremiumConnected: !!connection, // Returns true if connection exists, false if not
     });
   } catch (err) {
     res.status(400).send({ message: "Failed to fetch user", error: err.message });
@@ -46,8 +57,11 @@ router.get("/user/matches", userAuth, async (req, res) => {
   try {
     const userId = req.user._id;
 
-    // 1. Get all existing connection requests (pending, accepted, rejected)
+    // 1. Get all existing connection requests (accepted, rejected)
+    // We intentionally ignore "pending" requests so that users stay on the Matches page 
+    // until the request is finally resolved!
     const existingConnections = await Connection.find({
+      status: { $in: ["accepted", "rejected"] },
       $or: [{ fromUserId: userId }, { toUserId: userId }],
     });
 
