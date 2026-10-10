@@ -47,7 +47,7 @@ const generateAiResponse = async (previousMessages, userQuestion) => {
 
     // 3. Call the Gemini API (using the ultra-fast and cost-effective flash-lite model)
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash-lite",
+      model: "gemini-3.8-flash",
       contents: finalPrompt,
     });
 
