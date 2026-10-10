@@ -4,6 +4,8 @@ const app = express();
 const connectDB = require("./config/database");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const http = require("http");
+const { initializeSocket } = require("./utils/socket");
 
 app.use(express.json());
 app.use(cookieParser());
@@ -20,12 +22,18 @@ const profileRouter = require("./routes/profile");
 const connectionRouter = require("./routes/connection");
 const matchRouter = require("./routes/match");
 const userRouter = require("./routes/user");
+const chatRouter = require("./routes/chat");
+
+
+const server = http.createServer(app);
+initializeSocket(server);
 
 app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", connectionRouter);
 app.use("/", matchRouter);
 app.use("/", userRouter);
+app.use("/", chatRouter);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -37,7 +45,7 @@ const PORT = process.env.PORT || 3000;
 connectDB()
   .then(() => {
     console.log("Database connection established..");
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`Server is successfully listening on port ${PORT}...`);
     });
   })
