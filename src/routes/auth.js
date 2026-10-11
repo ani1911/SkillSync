@@ -42,7 +42,13 @@ router.post("/login", async (req, res) => {
 
     if (isPasswordValid) {
       const token = await user.getJWT();
-      res.cookie("token", token);
+      const isProduction = process.env.NODE_ENV === "production";
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
       res.send("Login Successfully");
     } else {
       throw new Error("password is not correct");
@@ -53,7 +59,11 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/logout", (req, res) => {
+  const isProduction = process.env.NODE_ENV === "production";
   res.cookie("token", null, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
     expires: new Date(Date.now()),
   });
 
