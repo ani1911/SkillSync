@@ -58,34 +58,36 @@ graph TD
 ## Core Engineering Highlights
 
 ### 1. Real-Time Socket Architecture
-- **Bi-Directional Chat:** Instant message delivery using `Socket.io` with isolated private rooms generated deterministically (`[userA, userB].sort().join("_")`) to prevent duplicate threads and race conditions.
-- **Stateful Connections:** Efficiently tracks online presence and manages graceful socket disconnections to prevent memory leaks.
-- **Persistence-First Pattern:** Messages are saved to MongoDB before room broadcasting, guaranteeing zero message loss during momentary network latency.
+- **Bi-Directional Chat:** Real-time messaging with `Socket.io` using private rooms generated deterministically (`[userA, userB].sort().join("_")`) to prevent duplicate threads and race conditions.
+- **Persistence-First Pattern:** Messages are committed to MongoDB before broadcasting to the room, ensuring zero message loss during momentary network latency.
+- **Stateful Connection Lifecycle:** Tracks presence and cleans up socket listeners on disconnect to prevent memory leaks.
 
 ### 2. Google Gemini AI Integration (`@ai`)
-- **Native In-Chat Assistant:** Embedded `@google/genai` (Gemini 3.8 Flash) acts as an intelligent third participant in developer conversations.
-- **Contextual Memory:** Intercepts `@ai` tags mid-stream, retrieves recent conversation turns from MongoDB as context, and returns syntax-highlighted Markdown.
-- **Cost-Optimized & Gated:** Gated to accepted developer connections with strict context limits to keep latency sub-second and minimize token consumption.
+- **Native In-Chat Assistant:** Embedded Google Gemini (Gemini 3.8 Flash) acts as an intelligent collaborator directly within conversation threads.
+- **Contextual Memory:** Intercepts `@ai` tags mid-stream, fetches recent conversation history from MongoDB as prompt context, and returns formatted code responses.
+- **Token & Cost Optimization:** Restricted to accepted developer connections with bounded context windows to keep latency low.
 
-### 3. Matchmaking & 4-Stage Connection Engine
-- **Algorithmic Discovery:** Aggregates developer profiles with `$nin` exclusions (excluding self, already-swiped users, and existing connections).
-- **Mutual Match State:** Detects bidirectional "likes" and elevates developers to the mutual Matches stage.
-- **Pitch Notes & Edge Cases:** Developers send connection requests with personalized pitch notes, with auto-accept handling if a reverse request already exists.
+### 3. Matchmaking & Double Opt-In Engine
+- **Algorithmic Discovery:** Aggregates discoverable developers with indexed MongoDB `$nin` queries (excluding self, swiped profiles, and active connections).
+- **Mutual Match State:** Detects bidirectional interest and elevates both profiles to the mutual match stage.
+- **Pitch Notes & Edge Cases:** Allows sending personalized pitch notes (up to 300 characters), with automatic resolution if a reciprocal request already exists.
 
-### 4. Monetization & Razorpay Integration
-- **Pro Membership Pass:** Backend handles order creation, status auditing, and user tier upgrades.
-- **Cryptographic Verification:** Verifies payment authenticity via server-side HMAC-SHA256 signature checks.
-- **Development Mock Support:** Built-in test fallback to ensure seamless local evaluation without requiring live payment credentials.
+### 4. Monetization & Payment Verification (Razorpay)
+- **Pro Membership Pass:** Backend handles order creation, status tracking, and tier upgrades.
+- **HMAC Signature Verification:** Verifies payment authenticity using server-side HMAC-SHA256 signature audits before activating membership benefits.
+- **Transaction Auditing:** Persists payment lifecycle records to ensure an immutable audit log.
 
-### 5. Security & Authentication
-- **Secure Cookie JWT:** `httpOnly` and `SameSite` cookie authentication prevents XSS token extraction.
-- **Data Sanitization:** Strict Mongoose schemas, password hashing with `bcrypt` (10 rounds), and field whitelisting to prevent mass assignment.
-- **Protected Projections:** Public profile endpoints strictly filter out sensitive properties (`-password -emailId`).
+### 5. Authentication & Data Protection
+- **Session Security:** Stateless JWT authentication stored in secure `httpOnly` and `SameSite` cookies to protect session integrity.
+- **Data Protection:** Strict Mongoose schema validation, field whitelisting on updates, and selective projections to prevent sensitive data exposure.
+- **Access Control Middlewares:** Route-level authentication middlewares verifying token claims and populating authorized user context on privileged requests.
 
-### 6. Cloud Deployment & Production DevOps (AWS EC2)
-- **AWS EC2 Ubuntu Host:** Hosted on AWS EC2 with system-level process management via **PM2**.
-- **Nginx Reverse Proxy:** Manages traffic routing, SPA fallback, same-origin cookie delivery, and WebSocket protocol upgrades (`Upgrade: websocket`).
-- **Zero-Downtime Daemon:** Managed via PM2 with crash auto-restart and reboot persistence.
+---
+
+## Production Deployment & Infrastructure (AWS EC2)
+- **AWS EC2 Linux Host:** Deployed on AWS EC2 with system-level process management and daemon monitoring via **PM2**.
+- **Nginx Reverse Proxy:** Manages request routing, SSL/TLS termination, and WebSocket protocol upgrades (`Upgrade: websocket`).
+- **Zero-Downtime Reliability:** Configured PM2 restart policies on system reboot or unexpected failures for continuous availability.
 
 ---
 
@@ -156,6 +158,20 @@ erDiagram
 - **Matches & Connections:** Relational states enforced with compound unique indexes (`{ fromUserId: 1, toUserId: 1 }`).
 - **Messages:** Time-series chat records indexed by `matchId` with flags for Gemini AI responses.
 - **Payments:** Audit trail for Razorpay transaction orders, payment IDs, and verification signatures.
+
+---
+
+## API Overview
+
+| Module | Method | Endpoint | Description |
+|---|---|---|---|
+| **Auth** | `POST` | `/signup`, `/login`, `/logout` | User registration, authentication, and secure session management |
+| **Profile** | `GET`, `PATCH` | `/profile/view`, `/profile/edit` | Retrieve and update profile details, technical skills, and links |
+| **Discovery** | `GET` | `/feed` | Dynamic developer feed filtered by tech stack and exclusions |
+| **Match** | `POST` | `/match/:action/:userId` | Swipe interactions (`like` / `dislike`) with mutual match detection |
+| **Network** | `GET`, `POST` | `/connection/send/:userId`, `/user/connections` | Send pitch notes, review invites, and list connections |
+| **Chat** | `GET` | `/chat/:targetUserId` | Retrieve conversation history for active connection |
+| **Payment** | `POST` | `/payment/create-order`, `/payment/verify` | Razorpay order generation and cryptographic signature verification |
 
 ---
 
