@@ -23,6 +23,7 @@ const connectionRouter = require("./routes/connection");
 const matchRouter = require("./routes/match");
 const userRouter = require("./routes/user");
 const chatRouter = require("./routes/chat");
+const paymentRouter = require("./routes/payment");
 
 
 const server = http.createServer(app);
@@ -34,6 +35,7 @@ app.use("/", connectionRouter);
 app.use("/", matchRouter);
 app.use("/", userRouter);
 app.use("/", chatRouter);
+app.use("/", paymentRouter);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

@@ -46,3 +46,24 @@ When a user formally accepts a Connection Request, they move to the Network tab.
 
 What they get: The Chat window becomes totally unrestricted.
 What is unlocked: All of their GitHub, LinkedIn, and Portfolio links become fully clickable. They are now official collaborators!
+
+
+
+SkillSync | Full-Stack Developer Matchmaking & Collaboration Platform
+React, Node.js, Express, MongoDB, Socket.io, Google Gemini 3.8 Flash, Redux Toolkit, TailwindCSS
+
+Engineered an interactive developer networking platform with real-time bidirectional messaging using Socket.io, featuring room-level isolation and message persistence in MongoDB.
+Integrated Google Gemini 3.8 Flash directly into live chat rooms via @ai triggers, feeding dynamic conversation history to deliver contextual coding assistance and project feedback.
+Designed a multi-state connection engine (ignored, interested, accepted, rejected) with compound indexing and query filtering to prevent duplicate requests and streamline feed discovery.
+Implemented secure authentication using JWTs stored in HTTP-only cookies, password hashing with bcrypt, and centralized state management via Redux Toolkit.
+Deployed full-stack application on an AWS EC2 (Linux) instance, configuring Nginx as a reverse proxy for HTTP and Socket.io WebSocket traffic with SSL/TLS, and managed zero-downtime server processes using PM2.
+
+
+SkillSync — Full-Stack Developer Collaboration & Networking Platform
+Tech Stack: React.js, Node.js, Express, MongoDB, Socket.io, Google Gemini 3.8 Flash, Razorpay, Redux Toolkit, AWS EC2, Nginx, TailwindCSS
+
+Real-Time Communication: Engineered a bidirectional real-time messaging architecture using Socket.io featuring room-level isolation, private peer-to-peer chats, typing indicators, and message persistence in MongoDB.
+Context-Aware AI Assistant: Integrated Google Gemini 3.8 Flash directly inside live chat rooms via @ai triggers, injecting historical conversation context to deliver instant technical mentorship and code feedback.
+Cryptographic Payment Gateway: Built an end-to-end monetization flow with Razorpay, implementing server-side HMAC-SHA256 cryptographic signature verification (crypto.timingSafeEqual) and dedicated transaction audit logging to secure Pro memberships.
+Matchmaking & State Engine: Designed a multi-state connection engine (ignored, interested, accepted, rejected) with compound indexing and feed filtering to prevent duplicate connection requests and prioritize active developers.
+Cloud Deployment: Hosted production application on AWS EC2 (Linux), configuring Nginx as a reverse proxy for HTTP and WebSocket protocol upgrades, with PM2 process monitoring and SSL/TLS certificates.
