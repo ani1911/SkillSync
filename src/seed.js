@@ -286,7 +286,7 @@ const seed = async () => {
       console.log(`👤 Created user: ${user.firstName} ${user.lastName} (${user.emailId})`);
     }
 
-    const [arjun, priya, rohan, meera, aisha] = createdUsers;
+    const [arjun, priya, rohan, meera, aisha, dev, karan, ananya, vikram, sneha] = createdUsers;
 
     // 1. Pre-seed Accepted Connections for Demo User (Arjun)
     await Connection.create({
@@ -317,6 +317,12 @@ const seed = async () => {
     await Match.create({ fromUserId: arjun._id, toUserId: aisha._id, status: "like" });
     await Match.create({ fromUserId: aisha._id, toUserId: arjun._id, status: "like" });
     console.log("🔥 Created 1 mutual match with Aisha Khan in Matches tab.");
+
+    // 4. Pre-seed incoming likes from Dev Patel & Sneha Gupta onto Demo User
+    // When the user logs in as Arjun and swipes right on them in the Feed, it triggers an instant MATCH!
+    await Match.create({ fromUserId: dev._id, toUserId: arjun._id, status: "like" });
+    await Match.create({ fromUserId: sneha._id, toUserId: arjun._id, status: "like" });
+    console.log("⚡ Pre-seeded incoming likes from Dev Patel and Sneha Gupta for live feed matching.");
 
     // 4. Pre-seed Chat History with Priya Sharma (Showcases both Dev Chat and Gemini AI)
     const matchId = [arjun._id.toString(), priya._id.toString()].sort().join("_");
