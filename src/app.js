@@ -29,6 +29,9 @@ const paymentRouter = require("./routes/payment");
 const server = http.createServer(app);
 initializeSocket(server);
 
+// Health check endpoint (also used to prevent Render free-tier cold starts)
+app.get("/health", (req, res) => res.status(200).json({ status: "ok" }));
+
 app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", connectionRouter);
